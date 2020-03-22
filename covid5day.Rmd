@@ -111,7 +111,7 @@ In the script below, we use 10 days of data at a time to estimate rates. This le
 # calculate per-capita growth rates
 dIIdt <- matrix(nrow=ndays, ncol=ncountries)
 dRRdt <- matrix(nrow=ndays, ncol=ncountries)
-
+dIpRIpRdt <- matrix(nrow=ndays, ncol=ncountries) #dynamics for I+R
 
 for(i in 1:nrow(countries)) {
   # get rate
@@ -122,6 +122,10 @@ for(i in 1:nrow(countries)) {
   tmplogR<-log(Rmat[,i])
   tmplogR[!is.finite(tmplogR)]<-NA # deal with zero observations
   dRRdt[-1,i]<-diff(tmplogR)
+  
+  tmplogIpR<-log(Imat[,i]+Rmat[,i])
+  tmplogIpR[!is.finite(tmplogIpR)]<-NA # deal with zero observations
+  dIpRIpRdt[-1,i]<-diff(tmplogIpR)
 }
 
 # estimate parameters
@@ -175,7 +179,7 @@ Next, we can plug the estimated parameter values into the differential equations
 In order to test model performance, the script below makes a five day forecast for various slices of data, ranging from the beginning of the spread of the virus, to the current day. For each of these time slices, the algorithm below uses the past ten days of data to estimate growth rates, and then makes a five-day forecast. Thus, we can look at how forecasts performed over the past in order to decide whether or not we should be willing to trust forecasts in the future.
 
 ```{r}
-# loade deSolve package
+# load deSolve package
 require(deSolve, quietly = TRUE)
 
 # function for simulating ODE
@@ -298,11 +302,11 @@ mtext("confirmed cases", 2, outer=T, line=1.5)
 We can also look at estimates of the rates $c$ and $m$. I haven't thought much about this section, as the rates are really just phenomenological constructs meant to match the data. But, for completeness, the graphs below show rate estimates for each country over time.
 
 ```{r}
-par(mfrow=c(2,1), mar=c(2,4,2,2), oma=c(2,0,0,0))
+par(mfrow=c(3,1), mar=c(2,4,2,2), oma=c(2,0,0,0))
 # c
 cmat<-beta0mat+mmat
 #use 0.1 as a lower cut-off for zero in log-space
-matplot(1:ndays, log(cmat+0.1), col=collst, type="b", pch=1:ncountries, ylab="c", xlab="days", axes=FALSE)
+matplot(1:ndays, log(cmat+0.1), col=collst, type="b", pch=1:ncountries, ylab="c", xlab="days", axes=FALSE, xlim=c(10,ndays), cex=0.5)
 axis(1)
 #adjust axis for cutoff
 axissq<-c(0, 0.05, 0.1, 0.2, 0.5, 1)
@@ -311,7 +315,17 @@ abline(h=log(0.1), lty=3)
 
 # m
 #same axis scheme as above
-matplot(1:ndays, log(mmat+0.1), col=collst, type="b", pch=1:ncountries, ylab="m", xlab="days", axes=FALSE)
+matplot(1:ndays, log(mmat+0.1), col=collst, type="b", pch=1:ncountries, ylab="m", xlab="days", axes=FALSE, xlim=c(10,ndays), cex=0.5)
+axis(1)
+#adjust axis for cutoff
+axissq<-c(0, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10)
+axis(2, at=log(axissq+0.1), axissq, las=2); box()
+abline(h=log(0.1), lty=3)
+
+legend("topleft", countries$names, col=collst, lty=1:ncountries, bty="n", ncol=2, pch=1:ncountries)
+
+#total rate
+matplot(1:ndays, log(dIpRIpRdt+0.1), col=collst, type="b", pch=1:ncountries, ylab="d(I+R)/(I+R)dt", xlab="days", axes=FALSE, xlim=c(10,ndays), cex=0.5)
 axis(1)
 #adjust axis for cutoff
 axissq<-c(0, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10)
@@ -319,9 +333,6 @@ axis(2, at=log(axissq+0.1), axissq, las=2); box()
 abline(h=log(0.1), lty=3)
 
 mtext("day", 1, outer=TRUE, line = 0.5)
-legend("topleft", countries$names, col=collst, lty=1:ncountries, bty="n", ncol=2, pch=1:ncountries)
-
-
 ```
 
 ## Latest forecasts
