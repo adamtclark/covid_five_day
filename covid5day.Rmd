@@ -32,7 +32,9 @@ if(sum(grep("lastupdate.txt", dir()))>0) {
 # update if data isn't from today
 datetoday<-as.character(format(Sys.Date(), "%B %d %Y"))
 if(is.null(lastupdate) | length(unique(c(datetoday, lastupdate)))>1) {
-  system("git --git-dir=COVID-19/.git pull")
+  setwd("COVID-19/")
+  system("git pull")
+  setwd("../")
   write.table(datetoday, "lastupdate.txt", row.names = FALSE, col.names = FALSE)
 }
 
@@ -208,9 +210,11 @@ for(i in 1:nrow(countries)) {
 }
 ```
 
-## Plot fitting success
+## Plot model performance
 
 Next, we can plot predictions against observed abundances to test model fit. I do this in two ways. First, I report the "E2" statistic, which is roughly comparable to the classical R2 statistic, except that it tracks scatter around the 1-1 line, rather than a fitted regression. If values are close to one, then predictions match observations closely. If E2 is zero or smaller, then the model performs worse than the grand mean, which suggests that it includes very little informative value.
+
+Note that the model generally performs much worse for the R pool, as this pool is (currently) much smaller for most countries, and it is therefore harder to get accurate estimates of rates.
 
 ```{r}
 require(viridis, quietly = TRUE)
@@ -261,12 +265,13 @@ Note that in many cases, the five-day forecasts diverge greatly from observed dy
 startday<-20
 predcols<-adjustcolor(rainbow(length(seq(startday, ndays, by=1))), alpha.f = 0.8)
 
-par(mfrow=c(2,4), mar=c(2,2,2,2), oma=c(2,2,0,0))
+par(mfrow=c(2,4), mar=c(2,2,2,2), oma=c(2,3,0,0))
 for(i in 1:ncountries) {
   pltrng<-range(c(Imat[startday:ndays,i]+Rmat[startday:ndays,i], Ipred[startday:(ndays-5),i,]+Rpred[startday:(ndays-5),i,]), na.rm=T)
   pltrng[1]<-pmax(pltrng[1], 1)
   
-  plot(c(1,ndays), c(1,1), xlim=c(startday, ndays), type="n", ylim=pltrng, main=countries$names[i], log="y", xlab="", ylab="")
+  plot(c(1,ndays), c(1,1), xlim=c(startday, ndays), type="n", ylim=pltrng, main=countries$names[i], log="y", xlab="", ylab="", axes=FALSE)
+  axis(1); axis(2, las=2); box()
   n<-1
   for(j in seq(startday, ndays, by=1)) {
     obstmpI<-Imat[j,i]
@@ -285,7 +290,7 @@ for(i in 1:ncountries) {
 }
 
 mtext("forecast days", 1, outer=T, line=0.5)
-mtext("confirmed cases", 2, outer=T, line=0.5)
+mtext("confirmed cases", 2, outer=T, line=1.5)
 ```
 
 ## Rate estimates
@@ -296,14 +301,22 @@ We can also look at estimates of the rates $c$ and $m$. I haven't thought much a
 par(mfrow=c(2,1), mar=c(2,4,2,2), oma=c(2,0,0,0))
 # c
 cmat<-beta0mat+mmat
-matplot(1:ndays, cmat, col=collst, type="b", pch=1:ncountries, ylab="c", xlab="days")
-abline(h=0, lty=3)
-
-
+#use 0.1 as a lower cut-off for zero in log-space
+matplot(1:ndays, log(cmat+0.1), col=collst, type="b", pch=1:ncountries, ylab="c", xlab="days", axes=FALSE)
+axis(1)
+#adjust axis for cutoff
+axissq<-c(0, 0.05, 0.1, 0.2, 0.5, 1)
+axis(2, at=log(axissq+0.1), axissq, las=2); box()
+abline(h=log(0.1), lty=3)
 
 # m
-matplot(1:ndays, mmat, col=collst, type="b", pch=1:ncountries, ylab="m", xlab="days")
-abline(h=0, lty=3)
+#same axis scheme as above
+matplot(1:ndays, log(mmat+0.1), col=collst, type="b", pch=1:ncountries, ylab="m", xlab="days", axes=FALSE)
+axis(1)
+#adjust axis for cutoff
+axissq<-c(0, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10)
+axis(2, at=log(axissq+0.1), axissq, las=2); box()
+abline(h=log(0.1), lty=3)
 
 mtext("day", 1, outer=TRUE, line = 0.5)
 legend("topleft", countries$names, col=collst, lty=1:ncountries, bty="n", ncol=2, pch=1:ncountries)
