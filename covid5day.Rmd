@@ -293,7 +293,7 @@ for(i in 1:ncountries) {
   lines(1:ndays, Imat[,i]+Rmat[,i], col=1, lwd=2)
 }
 
-mtext("forecast days", 1, outer=T, line=0.5)
+mtext("day", 1, outer=T, line=0.5)
 mtext("confirmed cases", 2, outer=T, line=1.5)
 ```
 
