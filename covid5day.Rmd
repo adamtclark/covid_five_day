@@ -67,9 +67,9 @@ Rmat <- matrix(nrow=ndays, ncol=ncountries) # recovered/removed
 
 # fill matrices
 for(i in 1:nrow(countries)) {
-  cases_tmp<-colSums(casesdat[casesdat$Country.Region==countries$names[i],-c(1:4)])
-  deaths_tmp<-colSums(deathsdat[deathsdat$Country.Region==countries$names[i],-c(1:4)])
-  recovered_tmp<-colSums(recovereddat[recovereddat$Country.Region==countries$names[i],-c(1:4)])
+  cases_tmp<-colSums(casesdat[casesdat$Country.Region==countries$names[i],-c(1:4)], na.rm=T)
+  deaths_tmp<-colSums(deathsdat[deathsdat$Country.Region==countries$names[i],-c(1:4)], na.rm=T)
+  recovered_tmp<-colSums(recovereddat[recovereddat$Country.Region==countries$names[i],-c(1:4)], na.rm=T)
 
   # I = cases - deaths - recovered
   Imat[,i]<-cases_tmp-deaths_tmp-recovered_tmp
