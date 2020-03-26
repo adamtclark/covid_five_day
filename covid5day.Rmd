@@ -40,11 +40,11 @@ if(is.null(lastupdate) | length(unique(c(datetoday, lastupdate)))>1) {
 
 # load data
 #total reported cases
-casesdat<-read.csv("COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv")
+casesdat<-read.csv("COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
 #deaths
-deathsdat<-read.csv("COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv")
+deathsdat<-read.csv("COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv")
 #recovered cases
-recovereddat<-read.csv("COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Recovered.csv")
+recovereddat<-read.csv("COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv")
 ```
 
 ## Generating time series
@@ -71,10 +71,12 @@ for(i in 1:nrow(countries)) {
   deaths_tmp<-colSums(deathsdat[deathsdat$Country.Region==countries$names[i],-c(1:4)], na.rm=T)
   recovered_tmp<-colSums(recovereddat[recovereddat$Country.Region==countries$names[i],-c(1:4)], na.rm=T)
 
+  ps<-1:min(c(length(cases_tmp), length(recovered_tmp), length(deaths_tmp)))
+  
   # I = cases - deaths - recovered
-  Imat[,i]<-cases_tmp-deaths_tmp-recovered_tmp
+  Imat[ps,i]<-cases_tmp[ps]-deaths_tmp[ps]-recovered_tmp[ps]
   # R = deaths + recovered
-  Rmat[,i]<-deaths_tmp+recovered_tmp
+  Rmat[ps,i]<-deaths_tmp[ps]+recovered_tmp[ps]
 }
 ```
 
@@ -345,17 +347,26 @@ Recall that data are always one day behind - so, day "zero" is for the observati
 
 ```{r}
 par(mfrow=c(2,4), mar=c(2,2,2,2), oma=c(2,4,0,0))
+
+#make sure that there aren't na's in the days we are trying to plot
+ndaysplot<-ndays
+mchange<-0
+while(is.na(sum(c(Imat[ndaysplot,], Rmat[ndaysplot,])))) {
+  ndaysplot<-ndaysplot-1
+  mchange<-mchange+1
+}
+
 for(i in 1:ncountries) {
-  plotdattmp<-c(Imat[ndays,i]+Rmat[ndays,i], Ipred[ndays,i,]+Rpred[ndays,i,])
-  rng<-range(c(plotdattmp, c(Rmat[ndays,i], Rpred[ndays,i,])), na.rm=T)
+  plotdattmp<-c(Imat[ndaysplot,i]+Rmat[ndaysplot,i], Ipred[ndaysplot,i,]+Rpred[ndaysplot,i,])
+  rng<-range(c(plotdattmp, c(Rmat[ndaysplot,i], Rpred[ndaysplot,i,])), na.rm=T)
   rng[1]<-pmax(1, rng[1])
   
-  plot(0:5, plotdattmp,
+  plot(0:5-mchange, plotdattmp,
        type="b", col=collst[i], pch=i, lty=i,
        ylim=rng,
        xlab="forecast days", ylab="number of people",
        main=countries$names[i], log="y", axes=F)
-  lines(0:5, c(Rmat[ndays,i], Rpred[ndays,i,]), col="darkgrey", lty=2, lwd=2)
+  lines(0:5-mchange, c(Rmat[ndaysplot,i], Rpred[ndaysplot,i,]), col="darkgrey", lty=2, lwd=2)
   abline(h=0, v=0, lty=3)
   axis(1); axis(2, las=2); box()
 }
