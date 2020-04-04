@@ -86,18 +86,18 @@ Rather than modelling these in terms of the susceptible population (which is, at
 
 In this model, dynamics follow the simple form:
 
-$$ \frac{\mathrm{d}I}{\mathrm{d}t} = cI(1 -I/K) - m I$$
+$$ \frac{\mathrm{d}I}{\mathrm{d}t} = cI(1 - (I+R)/K) - m I$$
 $$ \frac{\mathrm{d}R}{\mathrm{d}t} = m I $$
 
-That is, we assume that infections in the I pool grow logarithmically, with some growth rate ($c$), a carrying capacity ($K$), and a rate at which infected individuals either recover or die ($m$). The R pool therefore grows purely as a function of $m$ and $I$.
+That is, we assume that infections in the I pool grow logarithmically, with some growth rate ($c$), a carrying capacity ($K$) that jointly considers I and R abundance, and a rate at which infected individuals either recover or die ($m$). The R pool grows purely as a function of $m$ and $I$. Note that this is an update from the initial verion of the model reported here, as we definite carrying capacity in terms of R and I.
 
 This form has two useful attributes. First, it means that we don't need to include information about the total pool of susceptible individuals, which is probably a good idea since the number of cases is likely to be under-reported. Second, it lets us calculate parameters from a simple linearized form of the per-capita growth curve for infected individuals. These dynamics follow
 
-$$ \frac{\mathrm{d}I}{I \mathrm{d}t} = (c-m) -Ic/K$$
+$$ \frac{\mathrm{d}I}{I \mathrm{d}t} = (c-m) -(I+R)c/K$$
 
 If we combine parameters, we can therefore write this as
 
-$$ \frac{\mathrm{d}I}{I \mathrm{d}t} = \beta_0 - \beta_1 I$$
+$$ \frac{\mathrm{d}I}{I \mathrm{d}t} = \beta_0 - \beta_1 (I+R)$$
 
 where $\beta_0 = c-m$ and $\beta_1 = c/K$. We can also use the rate of change in the R pool to estimate $m$ as a function of the number of infected individuals.
 
@@ -144,25 +144,28 @@ for(i in 1:nrow(countries)) {
     Itmp<-Imat[(j-9):j,i]
     Rtmp<-Rmat[(j-9):j,i]
     
+    IRtmp<-Itmp+Rtmp
+    
     # only run if at least 6 observations are not NA
-    if(sum(is.finite(dItmp))>6 & sum(is.finite(Itmp))>6) {
-      modtmp<-lm(dItmp~Itmp)
+    if(sum(is.finite(dItmp))>6 & sum(is.finite(IRtmp))>6 &
+       sd(dItmp,na.rm=T)>0) {
+      modtmp<-lm(dItmp~IRtmp)
       
       # check if slope can be estimated - if so,
       # check if slope adds significant explanatory power
       if(is.finite(coef(modtmp)[2])) {
-        suppressWarnings(modtmp<-step(lm(dItmp~Itmp), trace = FALSE))
+        suppressWarnings(modtmp<-step(lm(dItmp~IRtmp), trace = FALSE))
       }
       cftmp<-coef(modtmp)
       
       beta0mat[j,i]<-unname(cftmp["(Intercept)"])#mean(dItmp, na.rm=T)
-      beta1mat[j,i]<-unname(cftmp["Itmp"])#0
+      beta1mat[j,i]<-unname(cftmp["IRtmp"])#0
       
       # if no significant slope, then set to zero
       if(is.na(beta1mat[j,i])) {
         beta1mat[j,i]<-0
       }
-      mmat[j,i]<-mean(dRtmp*Rtmp/Itmp,na.rm=TRUE)
+      mmat[j,i]<-mean(dRtmp*Rtmp/IRtmp,na.rm=TRUE)
     }
   }
 }
@@ -187,7 +190,8 @@ require(deSolve, quietly = TRUE)
 # function for simulating ODE
 IRmod<-function(time, state, pars) {
   I<-state[1]
-  dI <- (pars[1] + pars[2]*I)*I
+  R<-state[2]
+  dI <- (pars[1] + pars[2]*(I+R))*I
   dR <- pars[3]*I
   
   return(list(c(dI, dR)))
@@ -219,8 +223,6 @@ for(i in 1:nrow(countries)) {
 ## Plot model performance
 
 Next, we can plot predictions against observed abundances to test model fit. I do this in two ways. First, I report the "E2" statistic, which is roughly comparable to the classical R2 statistic, except that it tracks scatter around the 1-1 line, rather than a fitted regression. If values are close to one, then predictions match observations closely. If E2 is zero or smaller, then the model performs worse than the grand mean, which suggests that it includes very little informative value.
-
-Note that the model generally performs much worse for the R pool, as this pool is (currently) much smaller for most countries, and it is therefore harder to get accurate estimates of rates.
 
 ```{r}
 require(viridis, quietly = TRUE)
@@ -301,7 +303,7 @@ mtext("confirmed cases", 2, outer=T, line=1.5)
 
 ## Rate estimates
 
-We can also look at estimates of the rates $c$ and $m$. I haven't thought much about this section, as the rates are really just phenomenological constructs meant to match the data. But, for completeness, the graphs below show rate estimates for each country over time.
+We can also look at estimates of the rates $c$, $m$, and total per-capita growth of confirmed cases.
 
 ```{r}
 par(mfrow=c(3,1), mar=c(2,4,2,2), oma=c(2,0,0,0))
@@ -336,6 +338,33 @@ abline(h=log(0.1), lty=3)
 
 mtext("day", 1, outer=TRUE, line = 0.5)
 ```
+
+```{r}
+par(mfrow=c(2,4), mar=c(2,4,2,2), oma=c(2,0,0,0))
+for(i in 1:ncol(dIpRIpRdt)) {
+  xdat<-(Imat+Rmat)[40:nrow(dIpRIpRdt),i]
+  ydat<-dIpRIpRdt[40:nrow(dIpRIpRdt),i]
+  
+  
+  
+  mod<-step(lm(ydat~xdat, weights = xdat/sum(xdat, na.rm=T)), trace = FALSE)
+  xlmuse<-c(min(xdat, na.rm=T), max(xdat, na.rm=T))
+  
+  if(length(coef(mod))==2 && coef(mod)[2]<0) {
+    xlmuse[2]<-pmax(xlmuse[2], -coef(mod)[1]/coef(mod)[2])
+  }
+  
+  plot(xdat, ydat, col=collst[i],
+       ylim=c(0, max(ydat,na.rm=T)), xlim=xlmuse,
+       xlab="R+I", ylab="d(R+I)/(R+I)dt",
+       main=countries$names[i])
+  abline(mod, lty=2, col=collst[i])
+  abline(h=0, lty=3)
+}
+```
+
+For some countries, it's starting to look like we might be able to project dynamics forward towards potential saturation points (i.e. where the per-capita growth rate reaches zero). Again, recall that these projections are contingent on future behavior continuing to follow past trends, and only applies to changes in confirmed cases, not actual incidence.
+
 
 ## Latest forecasts
 
