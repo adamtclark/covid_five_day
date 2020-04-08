@@ -340,7 +340,7 @@ mtext("day", 1, outer=TRUE, line = 0.5)
 ```
 
 ```{r}
-par(mfrow=c(2,4), mar=c(2,4,2,2), oma=c(2,0,0,0))
+par(mfrow=c(2,4), mar=c(4,4,2,2), oma=c(2,0,0,0))
 for(i in 1:ncol(dIpRIpRdt)) {
   xdat<-(Imat+Rmat)[40:nrow(dIpRIpRdt),i]
   ydat<-dIpRIpRdt[40:nrow(dIpRIpRdt),i]
@@ -394,7 +394,7 @@ for(i in 1:ncountries) {
        type="b", col=collst[i], pch=i, lty=i,
        ylim=rng,
        xlab="forecast days", ylab="number of people",
-       main=countries$names[i], log="y", axes=F)
+       main=countries$names[i], log="", axes=F)
   lines(0:5-mchange, c(Rmat[ndaysplot,i], Rpred[ndaysplot,i,]), col="darkgrey", lty=2, lwd=2)
   abline(h=0, v=0, lty=3)
   axis(1); axis(2, las=2); box()
