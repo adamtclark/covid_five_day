@@ -154,8 +154,15 @@ for(i in 1:nrow(countries)) {
       # check if slope can be estimated - if so,
       # check if slope adds significant explanatory power
       if(is.finite(coef(modtmp)[2])) {
-        suppressWarnings(modtmp<-step(lm(dItmp~IRtmp), trace = FALSE))
+        if(coef(modtmp)[2]>0) {
+          #K must be positive
+          modtmp<-lm(dItmp~1)
+        } else {
+          suppressWarnings(modtmp<-step(lm(dItmp~IRtmp), trace = FALSE))
+        }
       }
+      
+      
       cftmp<-coef(modtmp)
       
       beta0mat[j,i]<-unname(cftmp["(Intercept)"])#mean(dItmp, na.rm=T)
@@ -193,6 +200,11 @@ IRmod<-function(time, state, pars) {
   R<-state[2]
   dI <- (pars[1] + pars[2]*(I+R))*I
   dR <- pars[3]*I
+  
+  if(dR<(-dI)) {
+    #can't have fewer recovered than infected
+    dR<-(-dI)
+  }
   
   return(list(c(dI, dR)))
 }
