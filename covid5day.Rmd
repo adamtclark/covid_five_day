@@ -236,6 +236,8 @@ for(i in 1:nrow(countries)) {
 
 Next, we can plot predictions against observed abundances to test model fit. I do this in two ways. First, I report the "E2" statistic, which is roughly comparable to the classical R2 statistic, except that it tracks scatter around the 1-1 line, rather than a fitted regression. If values are close to one, then predictions match observations closely. If E2 is zero or smaller, then the model performs worse than the grand mean, which suggests that it includes very little informative value.
 
+For the plots below, E2 shows the average performance for predictions over the past 30 days.
+
 ```{r}
 require(viridis, quietly = TRUE)
 collst<-viridis(ncountries)
@@ -248,12 +250,14 @@ for(i in 1:ncountries) {
     obstmp<-Imat[-(1:j),i]
     predtmp<-Ipred[1:(nrow(Ipred)-j),i,j]
     ps<-is.finite(obstmp) & is.finite(predtmp)
+    ps[-c((length(ps)-30):length(ps))]<-FALSE
     
     E2matI[j,i]<-1-mean((obstmp[ps]-predtmp[ps])^2, na.rm=T)/mean((obstmp[ps]-mean(obstmp[ps],na.rm=T))^2, na.rm=T)
     
     obstmp<-Rmat[-(1:j),i]
     predtmp<-Rpred[1:(nrow(Rpred)-j),i,j]
     ps<-is.finite(obstmp) & is.finite(predtmp)
+    ps[-c((length(ps)-30):length(ps))]<-FALSE
     
     E2matR[j,i]<-1-mean((obstmp[ps]-predtmp[ps])^2, na.rm=T)/mean((obstmp[ps]-mean(obstmp[ps],na.rm=T))^2, na.rm=T)
   }
