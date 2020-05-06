@@ -391,7 +391,7 @@ Again, please remember the caveats listed above. Additionally, be careful to com
 Recall that data are always one day behind - so, day "zero" is for the observation from yesterday, and day "one" is the forecast for the end of today.
 
 ```{r}
-par(mfrow=c(2,4), mar=c(2,2,2,2), oma=c(2,4,0,0))
+par(mfrow=c(2,4), mar=c(2,3,2,2), oma=c(2,4,0,0))
 
 #make sure that there aren't na's in the days we are trying to plot
 ndaysplot<-ndays
