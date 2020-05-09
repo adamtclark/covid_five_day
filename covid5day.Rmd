@@ -45,6 +45,8 @@ casesdat<-read.csv("COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_s
 deathsdat<-read.csv("COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv")
 #recovered cases
 recovereddat<-read.csv("COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv")
+
+date<-colnames(deathsdat)[ncol(deathsdat)]
 ```
 
 ## Generating time series
@@ -417,5 +419,7 @@ for(i in 1:ncountries) {
 }
 mtext("forecast days", 1, outer=T, line=0.5)
 mtext("confirmed cases", 2, outer=T, line=2)
+
+print(paste("date of day 0: ", gsub("X", "", date)))
 ```
 
