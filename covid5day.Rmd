@@ -21,6 +21,10 @@ I'm using data from the Johns Hopkins University Center for Systems Science and 
 
 Below is the script I use for updating these data. The checking and writing of the lastupdate.txt file is to ensure that pull requests are only made if the data from today have not yet been collected.
 
+```{r, echo=FALSE}
+setwd("~/Dropbox/Projects/068_covid/fiveday/")
+```
+
 ```{r}
 # check when data was last updated
 if(sum(grep("lastupdate.txt", dir()))>0) {
