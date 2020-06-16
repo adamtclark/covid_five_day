@@ -55,11 +55,11 @@ date<-colnames(deathsdat)[ncol(deathsdat)]
 
 ## Generating time series
 
-Next, I generate time series for a subset of five countries (these are, loosely, a mix of countries that have had especially high numbers of cases, or that are near me geographically). Feel free to change the country names if you are interested in other trends. To see the full list of country names, see the casesdat, deathsdat, or recovereddat data.
+Next, I generate time series for a subset of eight countries (these are, loosely, a mix of countries that have had especially high numbers of cases, or that are near me geographically). Feel free to change the country names if you are interested in other trends. To see the full list of country names, see the casesdat, deathsdat, or recovereddat data.
 
 ```{r}
 # list of countries
-countries<-data.frame(names=c("China", "Korea, South", "Italy", "Spain", "France", "Germany", "US", "Austria"), stringsAsFactors = FALSE)
+countries<-data.frame(names=c("China", "Korea, South", "Sweden", "Spain", "United Kingdom", "Germany", "US", "Austria"), stringsAsFactors = FALSE)
 # number of countries
 ncountries<-nrow(countries)
 
@@ -410,7 +410,8 @@ while(is.na(sum(c(Imat[ndaysplot,], Rmat[ndaysplot,])))) {
 for(i in 1:ncountries) {
   plotdattmp<-c(Imat[ndaysplot,i]+Rmat[ndaysplot,i], Ipred[ndaysplot,i,]+Rpred[ndaysplot,i,])
   rng<-range(c(plotdattmp, c(Rmat[ndaysplot,i], Rpred[ndaysplot,i,])), na.rm=T)
-  rng[1]<-pmax(1, rng[1])
+  #rng[1]<-pmax(1, rng[1])
+  rng[1]<-1
   
   plot(0:5-mchange, plotdattmp,
        type="b", col=collst[i], pch=i, lty=i,
