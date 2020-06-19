@@ -410,8 +410,8 @@ while(is.na(sum(c(Imat[ndaysplot,], Rmat[ndaysplot,])))) {
 for(i in 1:ncountries) {
   plotdattmp<-c(Imat[ndaysplot,i]+Rmat[ndaysplot,i], Ipred[ndaysplot,i,]+Rpred[ndaysplot,i,])
   rng<-range(c(plotdattmp, c(Rmat[ndaysplot,i], Rpred[ndaysplot,i,])), na.rm=T)
-  #rng[1]<-pmax(1, rng[1])
-  rng[1]<-1
+  rng[1]<-pmax(1, rng[1])
+  #rng[1]<-1
   
   plot(0:5-mchange, plotdattmp,
        type="b", col=collst[i], pch=i, lty=i,
