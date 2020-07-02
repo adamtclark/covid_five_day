@@ -17,7 +17,7 @@ All this is to say - please don't take these numbers too seriously - they give a
 
 ## Data loading
 
-I'm using data from the Johns Hopkins University Center for Systems Science and Engineering. These data are available through the groups Github page (https://github.com/CSSEGISandData/COVID-19), and are updated daily. Thus, all of the numbers below will always be one day behind the current date (i.e. estimates on a Monday will be for total cases on Sunday). The Github also includes a lot of information in their README and briefings folders.
+I'm using data from the Johns Hopkins University Center for Systems Science and Engineering. These data are available through the groups Github page (   ), and are updated daily. Thus, all of the numbers below will always be one day behind the current date (i.e. estimates on a Monday will be for total cases on Sunday). The Github also includes a lot of information in their README and briefings folders.
 
 Below is the script I use for updating these data. The checking and writing of the lastupdate.txt file is to ensure that pull requests are only made if the data from today have not yet been collected.
 
