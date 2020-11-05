@@ -59,7 +59,7 @@ Next, I generate time series for a subset of eight countries (these are, loosely
 
 ```{r}
 # list of countries
-countries<-data.frame(names=c("China", "Korea, South", "Sweden", "Spain", "United Kingdom", "Germany", "US", "Austria"), stringsAsFactors = FALSE)
+countries<-data.frame(names=c("China", "Czechia", "Sweden", "Spain", "United Kingdom", "Germany", "US", "Austria"), stringsAsFactors = FALSE)
 # number of countries
 ncountries<-nrow(countries)
 
