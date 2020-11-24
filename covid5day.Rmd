@@ -328,11 +328,13 @@ mtext("confirmed cases", 2, outer=T, line=1.5)
 We can also look at estimates of the rates $c$, $m$, and total per-capita growth of confirmed cases.
 
 ```{r}
+lowerlim = 10
+
 par(mfrow=c(3,1), mar=c(2,4,2,2), oma=c(2,0,0,0))
 # c
 cmat<-beta0mat+mmat
 #use 0.1 as a lower cut-off for zero in log-space
-matplot(1:ndays, log(cmat+0.1), col=collst, type="b", pch=1:ncountries, ylab="c", xlab="days", axes=FALSE, xlim=c(10,ndays), cex=0.5)
+matplot(1:ndays, log(cmat+0.1), col=collst, type="b", pch=1:ncountries, ylab="c", xlab="days", axes=FALSE, xlim=c(lowerlim,ndays), cex=0.5)
 axis(1)
 #adjust axis for cutoff
 axissq<-c(0, 0.05, 0.1, 0.2, 0.5, 1)
@@ -341,7 +343,7 @@ abline(h=log(0.1), lty=3)
 
 # m
 #same axis scheme as above
-matplot(1:ndays, log(mmat+0.1), col=collst, type="b", pch=1:ncountries, ylab="m", xlab="days", axes=FALSE, xlim=c(10,ndays), cex=0.5)
+matplot(1:ndays, log(mmat+0.1), col=collst, type="b", pch=1:ncountries, ylab="m", xlab="days", axes=FALSE, xlim=c(lowerlim,ndays), cex=0.5)
 axis(1)
 #adjust axis for cutoff
 axissq<-c(0, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10)
@@ -351,7 +353,7 @@ abline(h=log(0.1), lty=3)
 legend("topleft", countries$names, col=collst, lty=1:ncountries, bty="n", ncol=2, pch=1:ncountries)
 
 #total rate
-matplot(1:ndays, log(dIpRIpRdt+0.1), col=collst, type="b", pch=1:ncountries, ylab="d(I+R)/(I+R)dt", xlab="days", axes=FALSE, xlim=c(10,ndays), cex=0.5)
+matplot(1:ndays, log(dIpRIpRdt+0.1), col=collst, type="b", pch=1:ncountries, ylab="d(I+R)/(I+R)dt", xlab="days", axes=FALSE, xlim=c(lowerlim,ndays), cex=0.5)
 axis(1)
 #adjust axis for cutoff
 axissq<-c(0, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10)
